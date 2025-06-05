@@ -11,10 +11,15 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text TopScoreText;
     public GameObject GameOverText;
+    private GameManager gameManager;
     
     private bool m_Started = false;
     private int m_Points;
+    private int m_TopScore;
+    private string m_Name;
+    private string m_TopName;
     
     private bool m_GameOver = false;
 
@@ -22,6 +27,16 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameManager = GameManager.Instance;
+        if (gameManager != null)
+        {
+            m_Name = gameManager.PlayerName;
+            m_TopName = gameManager.TopName;
+            m_TopScore = gameManager.TopScore;
+        }
+        else { m_Name = "Nobody"; }
+        ScoreText.text = $"{m_Name}'s Score : {m_Points}";
+        TopScoreText.text = $"Top Score : {m_TopName} : {m_TopScore}";
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -65,12 +80,32 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{m_Name}'s Score : {m_Points}";
+        if (m_Points > m_TopScore)
+        {
+            m_TopScore = m_Points;
+            m_TopName = m_Name;
+
+            TopScoreText.text = $"Top Score : {m_TopName} : {m_TopScore}";
+
+            if (gameManager != null)
+            {
+                gameManager.TopScore = m_TopScore;
+                gameManager.TopName = m_TopName;
+            }
+
+        }
+
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        if (gameManager != null)
+        {
+            gameManager.SaveTopScore(); // could use a dirty flag to see if we need to
+        }
     }
 }
